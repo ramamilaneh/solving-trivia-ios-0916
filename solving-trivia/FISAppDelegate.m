@@ -8,6 +8,8 @@
     // Override point for customization after application launch.
     NSString *result = [self solveTrivia];
     NSLog(@"%@",result);
+    NSString *encoded = [self encodeWithMessage:@"I'm a tiger" andOffset:5];
+    NSLog(@"%@&&&&&&&&&&&&&&",encoded);
     return YES;
 }
 
@@ -89,4 +91,70 @@
     return nil;
     }
 
+static NSString * const alphabet = @"abcdefghijklmnopqrstuvwxyz";
+static NSString * const ALPHABET = @"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+-(NSString *)encodeWithMessage:(NSString *)message andOffset:(NSInteger)key
+{
+    if (key%26 == 0) return message;
+    
+    NSCharacterSet *lowercaseAlphabet = [NSCharacterSet characterSetWithCharactersInString:alphabet];
+    NSCharacterSet *uppercaseAlphabet = [NSCharacterSet characterSetWithCharactersInString:ALPHABET];
+    
+    NSMutableString *encodedMessage = [[NSMutableString alloc] init];
+    
+    for (NSUInteger i = 0; i < message.length; i++) {
+        unichar character = [message characterAtIndex:i];
+        if ([lowercaseAlphabet characterIsMember:character]) {
+            character = [self encodeCharacterWithAlphabetString:alphabet andCharacter:character andKey:key];
+        } else if ([uppercaseAlphabet characterIsMember:character]) {
+            character = [self encodeCharacterWithAlphabetString:ALPHABET andCharacter:character andKey:key];
+        }
+        [encodedMessage appendFormat:@"%c", character];
+    }
+    return encodedMessage;
+}
+
+-(NSString *)decodeWithMessage:(NSString *)encodedMessage andOffset:(NSInteger)key
+{
+    if (key%26 == 0) return encodedMessage;
+    
+    NSCharacterSet *lowercaseAlphabet = [NSCharacterSet characterSetWithCharactersInString:alphabet];
+    NSCharacterSet *uppercaseAlphabet = [NSCharacterSet characterSetWithCharactersInString:ALPHABET];
+    
+    NSMutableString *decodedMessage = [[NSMutableString alloc] init];
+    
+    for (NSUInteger i = 0; i < encodedMessage.length; i++) {
+        char character = [encodedMessage characterAtIndex:i];
+        if ([lowercaseAlphabet characterIsMember:character]) {
+            character = [self decodeCharacterWithAlphabetString:alphabet andCharacter:character andKey:key];
+        } else if ([uppercaseAlphabet characterIsMember:character]) {
+            character = [self decodeCharacterWithAlphabetString:ALPHABET andCharacter:character andKey:key];
+        }
+        NSLog(@"append %c to decode", character);
+        [decodedMessage appendFormat:@"%c", character];
+    }
+    return decodedMessage;
+}
+
+
+-(char)encodeCharacterWithAlphabetString:(NSString *)alphabetString andCharacter:(char)character andKey:(NSInteger)keyInt
+{
+    NSRange rangeOfCharacterInAlphabet = [alphabetString rangeOfString:[NSString stringWithFormat:@"%c", character]];
+    NSInteger translatedKey = rangeOfCharacterInAlphabet.location + (keyInt%26);
+    if (translatedKey > 26) {
+        translatedKey = translatedKey - 26;
+    }
+    return [alphabetString characterAtIndex:translatedKey];
+}
+
+-(char)decodeCharacterWithAlphabetString:(NSString *)alphabetString andCharacter:(char)character andKey:(NSInteger)keyInt
+{
+    NSRange rangeOfCharacterInAlphabet = [alphabetString rangeOfString:[NSString stringWithFormat:@"%c", character]];
+    NSInteger translatedKey = rangeOfCharacterInAlphabet.location - (keyInt%26);
+    if (translatedKey < 0) {
+        translatedKey = translatedKey + 26;
+    }
+    return [alphabetString characterAtIndex:translatedKey];
+}
 @end
